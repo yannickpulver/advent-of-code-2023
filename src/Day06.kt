@@ -33,7 +33,6 @@ fun main() {
 
         while (i < time / 2) {
             val win = distance < (i * (time - i))
-
             if (win) wins++
             i++
         }
@@ -41,7 +40,7 @@ fun main() {
         return if (time % 2L == 0L) {
             wins * 2 + 1
         } else {
-            wins * 2
+            wins * 2 + 2
         }
 
     }
