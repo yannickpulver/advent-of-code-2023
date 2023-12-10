@@ -106,18 +106,25 @@ fun main() {
 
     fun part2(input: List<String>): Any {
         val path = input.map {
+            it.map { -1 }.toMutableList()
+        }.toMutableList()
+
+        val loops = input.map {
             it.map { ' ' }.toMutableList()
         }.toMutableList()
+
 
         val (col, row) = findStart(input)
 
         var last = -1 to -1
         var current = col to row
+
         var i = 0
         while (true) {
             val next = findNext(input = input, current = current, last = last)
             if (next != null) {
-                val new = path[next.first].apply { set(next.second, input[next.first][next.second]) }
+                val new = path[next.first].apply { set(next.second, i) }
+                loops[next.first] = loops[next.first].apply { set(next.second, input[next.first][next.second]) }
                 path[next.first] = new
                 last = current
                 current = next
@@ -126,63 +133,26 @@ fun main() {
             }
             i++
         }
+        loops[row] = loops[row].apply { set(col, '|') }
 
-        // adding x's to all outside locations (no pipes)
-        while (true) {
-            var dirty = false
-            input.forEachIndexed { ir, row ->
-                row.forEachIndexed { ic, col ->
-                    val isEmpty = path[ir][ic] == ' '
-                    if (
-                        (((ic - 1) !in row.indices || path[ir][ic - 1] == 'x')
-                            || ((ic + 1) !in row.indices || path[ir][ic + 1] == 'x'))
-                        && isEmpty
-                    ) {
-                        path[ir][ic] = 'x'
-                        dirty = true
-                    }
 
-                    if (
-                        (((ir - 1) !in input.indices || path[ir - 1][ic] == 'x')
-                            || ((ir + 1) !in input.indices || path[ir + 1][ic] == 'x')
-                            )
-                        && isEmpty
-                    ) {
-                        path[ir][ic] = 'x'
-                        dirty = true
-                    }
-                }
-            }
-            if (!dirty) break
-        }
 
-        val verticalPipes = listOf("JF", "||", "J|", "|F", "|L", "7|", "7F", "JL", "7L")
-        val horizontalPipes = listOf("--", "LF", "JF", "L7", "J7", "-F", "-7", "J-", "L-")
-        // finding all not-enclosed inside locations
-        input.forEachIndexed { ir, row ->
+        loops.forEachIndexed { ir, row ->
             row.forEachIndexed { ic, col ->
-                if (path[ir][ic] != ' ') return@forEachIndexed
-
-                directions.forEach { directions ->
-                    val next = (ir to ic) + directions
-                    if (directions.first == 0) {
-                        val pipeString = path[next.first-1][next.second].toString() + path[next.first][next.second] + path[next.first-1][next.second+1]
-                        horizontalPipes.any { pipeString.contains(it) }
-                        // horizontal
-                    } else {
-                        val pipeString = path[next.first].subList(next.second - 1, next.second + 1).joinToString("")
-                        verticalPipes.any { pipeString.contains(it) }
-                        // vertical
-                    }
+                val pipes = "|LJ"
+                val substring = row.joinToString("").substring((ic + 1).coerceAtMost(row.lastIndex))
+                val inLoop = substring.count { it in pipes } % 2L != 0L
+                if (inLoop && path[ir][ic] == -1) {
+                    loops[ir][ic] = 'x'
                 }
             }
         }
 
-        path.forEach {
+        loops.forEach {
             println(it.joinToString(""))
         }
 
-        return 1
+        return loops.sumOf { it.count { it == 'x' } }
     }
 
     val input = readInput("Day10")
