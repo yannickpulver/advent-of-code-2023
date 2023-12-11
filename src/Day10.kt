@@ -81,10 +81,10 @@ fun main() {
 
     fun part1(input: List<String>): Int {
 
-        val (col, row) = findStart(input)
+        val (row, col) = findStart(input)
 
         var last = -1 to -1
-        var current = col to row
+        var current = row to col
         var i = 0
         while (true) {
             val next = findNext(input = input, current = current, last = last)
@@ -114,10 +114,10 @@ fun main() {
         }.toMutableList()
 
 
-        val (col, row) = findStart(input)
+        val (row, col) = findStart(input)
 
         var last = -1 to -1
-        var current = col to row
+        var current = row to col
 
         var i = 0
         while (true) {
@@ -133,23 +133,16 @@ fun main() {
             }
             i++
         }
-        loops[row] = loops[row].apply { set(col, '|') }
-
-
-
+        loops[row] = loops[row].apply { set(col, '|') } // hard-replacing S with proper direction
         loops.forEachIndexed { ir, row ->
             row.forEachIndexed { ic, col ->
                 val pipes = "|LJ"
                 val substring = row.joinToString("").substring((ic + 1).coerceAtMost(row.lastIndex))
-                val inLoop = substring.count { it in pipes } % 2L != 0L
+                val inLoop = substring.count { it in pipes } % 2L == 1L
                 if (inLoop && path[ir][ic] == -1) {
                     loops[ir][ic] = 'x'
                 }
             }
-        }
-
-        loops.forEach {
-            println(it.joinToString(""))
         }
 
         return loops.sumOf { it.count { it == 'x' } }
